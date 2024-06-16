@@ -1,3 +1,5 @@
+// middleware/extractToken.js
+
 const extractTokenMiddleware = (req, res, next) => {
     const token = req.headers.authorization;
   
@@ -5,8 +7,11 @@ const extractTokenMiddleware = (req, res, next) => {
       return res.status(401).json({ message: 'Unauthorized: Missing token' });
     }
   
-    // Example: Verify token validity (replace with your actual token verification logic)
-    if (token !== 'YOUR_SECRET_TOKEN') {
+    // Fetch the actual token value from environment variable
+    const secretToken = process.env.SECRET_TOKEN;
+  
+    // Compare the token with the one from environment variable
+    if (token !== secretToken) {
       return res.status(403).json({ message: 'Forbidden: Invalid token' });
     }
   

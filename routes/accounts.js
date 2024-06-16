@@ -3,6 +3,7 @@ const router = express.Router();
 const accountController = require('../controllers/accounts');
 const extractTokenMiddleware = require('../middleware/extractToken'); // Import middleware
 
+
 // Apply middleware to all routes in this router
 router.use(extractTokenMiddleware);
 
