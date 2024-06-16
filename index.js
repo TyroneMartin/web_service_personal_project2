@@ -2,6 +2,9 @@ require('dotenv').config();
 const axios = require('axios');
 const express = require('express');
 const path = require('path');
+const bodyParser = require('body-parser');
+const { auth, requiresAuth } = require('express-openid-connect'); // Import the auth middleware
+const mongodb = require('./db/connect');
 
 const app = express();
 
@@ -28,14 +31,38 @@ app.get('/oauth-callback', ({ query: { code } }, res) => {
     .post('https://github.com/login/oauth/access_token', body, opts)
     .then((_res) => _res.data.access_token)
     .then((token) => {
-      // eslint-disable-next-line no-console
       console.log('My token:', token);
-
       res.redirect(`/?token=${token}`);
     })
     .catch((err) => res.status(500).json({ err: err.message }));
 });
 
-app.listen(3000);
-// eslint-disable-next-line no-console
-console.log('App listening on port 3000');
+// Logout route
+app.get('/logout', (req, res) => {
+  req.logout(); // Clears the session and logs out the user
+  res.redirect('https://web-service-personal-project2.onrender.com'); // Redirect to GitHub logout endpoint
+});
+
+const port = process.env.PORT || 8080;
+
+app
+  .use(bodyParser.json())
+  .use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+  })
+  .use('/', require('./routes'));
+
+// Initialize MongoDB connection
+mongodb.initDb((err, db) => {
+  if (err) {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1); // Exit the process if MongoDB connection fails
+  }
+  console.log('Connected to MongoDB');
+
+  // Start the Express.js server
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
+});
